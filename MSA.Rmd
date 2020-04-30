@@ -1,0 +1,174 @@
+---
+title: "Mass Spectrometry Analyzer"
+author: "Amardeep Singh"
+date: "April 14, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library("readMzXmlData")
+
+xml <- readMzXmlFile(file.path("C://Users//Amardeep//Downloads//GSOC", "MEDIA_BLANK2.mzXML"))
+```
+```{r}
+require(XML)
+require(plyr)
+doc <- xmlParse("C://Users//Amardeep//Downloads//GSOC//MEDIA_BLANK2.mzXML",useInternalNodes = TRUE) ### xmlParse()- is to parse the xml content, the parsed content is stored into doc
+doc
+xL <- xmlToList(doc) ###is to convert xml doc into List
+
+data <- ldply(xL, data.frame)
+head(data)
+```
+```{r}
+library(mzR)
+rw<- openMSfile("C://Users//Amardeep//Downloads//GSOC//MEDIA_BLANK2.mzXML")
+```
+
+```{r}
+runInfo(rw)
+instrumentInfo(rw)
+header(rw,1)
+```
+```{r}
+ms<-readMSData(rw, mode="onDisk")
+
+```{r setup, include=FALSE}
+library(rbokeh)
+library(flexdashboard)
+```
+
+Column {data-width=600}
+-----------------------------------------------------------------------
+
+### Species
+
+```{r}
+figure(width = NULL, height = NULL) %>%
+  ly_points(Sepal.Length, Sepal.Width, data = iris, color = Species)
+# figure() %>%
+#   ly_points(Sepal.Length, Sepal.Width, data = iris,
+#     color = Species, glyph = Species)
+```
+
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### Species (Quantile)
+
+```{r}
+figure(width = NULL, height = NULL, legend_location = "top_left") %>%
+  ly_quantile(Sepal.Length, group = Species, data = iris)
+```
+
+### Petal Width
+
+```{r}
+figure(width = NULL, height = NULL) %>%
+  ly_points(Sepal.Length, Sepal.Width, data = iris,
+    color = Petal.Width)
+```
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(datasets)
+data(iris)
+```
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput('xcol', 'X Variable', names(iris))
+    
+selectInput('ycol', 'Y Variable', names(iris),
+                selected=names(iris)[[2]])
+    
+numericInput('clusters', 'Cluster count', 3,
+              min = 1, max = 9)
+```
+
+Column
+-----------------------------------------------------------------------
+
+### K Means
+
+```{r}
+palette(c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3",
+  "#FF7F00", "#FFFF33", "#A65628", "#F781BF", "#999999"))
+
+# Combine the selected variables into a new data frame
+selectedData <- reactive({
+  iris[, c(input$xcol, input$ycol)]
+})
+
+clusters <- reactive({
+  kmeans(selectedData(), input$clusters)
+})
+
+renderPlot({
+  par(mar = c(5.1, 4.1, 0, 1))
+  plot(selectedData(),
+       col = clusters()$cluster,
+       pch = 20, cex = 3)
+  points(clusters()$centers, pch = 4, cex = 4, lwd = 4)
+})
+```
+```{r}
+pl15 <- peaks(rw,15)
+peaksCount(rw,15)
+head(pl15)
+plot(pl1[,1], pl1[,2], type="h", lwd=1)
+```
+```{r}
+pl1 <- peaks(rw,9)
+peaksCount(rw,9)
+head(pl1)
+plot(pl1[,1], pl1[,2], type="h", lwd=1)
+```
+
+```{r}
+pl <- peaks(rw,10)
+peaksCount(rw,10)
+head(pl)
+plot(pl[,1], pl[,2], type="h", lwd=1)
+```
+```{r}
+cl<-spectra(rw,1:2)
+class(cl)
+head(cl[[1]])
+```
+```{r}
+sp <-spectra(rw)
+head(sp)
+```
+```{r}
+plot(rw$scan[[1]]$mass, rw$scan[[1]]$peaks, type="l");
+```
+```{r}
+spectra<- spectra(rw,1)
+head(spectra)
+```
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
